@@ -73,7 +73,7 @@ HTML_TEMPLATE = """
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
         button:active { transform: translateY(0); }
-        
+         
         .success { 
             color: #16a34a; 
             margin-top: 1rem; 
@@ -139,6 +139,7 @@ HTML_TEMPLATE = """
             
             <div class="card">
                 <h2>🔍 Search Brain</h2>
+                <div id="syncStatus" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem; text-align: right;"></div>
                 <form id="searchForm" onsubmit="return handleSearch(event)">
                     <input type="text" id="searchQuery" placeholder="Search your knowledge..." required>
                     <button type="submit">Search</button>
@@ -153,6 +154,7 @@ HTML_TEMPLATE = """
             event.preventDefault();
             const query = document.getElementById('searchQuery').value;
             const resultsDiv = document.getElementById('searchResults');
+            const syncStatusDiv = document.getElementById('syncStatus');
             
             resultsDiv.innerHTML = '<div class="no-results">Searching...</div>';
             
@@ -164,6 +166,11 @@ HTML_TEMPLATE = """
                 });
                 
                 const data = await response.json();
+                
+                if (data.last_updated) {
+                    const date = new Date(data.last_updated * 1000);
+                    syncStatusDiv.textContent = 'Last synced: ' + date.toLocaleString();
+                }
                 
                 if (data.results && data.results.length > 0) {
                     resultsDiv.innerHTML = data.results.map(r => `
@@ -230,6 +237,7 @@ def search():
     
     # Search the brain
     results = brain.search(query, n_results=5)
+    last_updated = brain.get_last_updated_at()
     
     # Format results
     formatted_results = []
@@ -247,7 +255,10 @@ def search():
                 'content': doc
             })
     
-    return jsonify({'results': formatted_results})
+    return jsonify({
+        'results': formatted_results,
+        'last_updated': last_updated
+    })
 
 if __name__ == '__main__':
     os.makedirs(INBOX_DIR, exist_ok=True)

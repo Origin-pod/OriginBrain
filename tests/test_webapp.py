@@ -12,6 +12,8 @@ def client():
 
 @pytest.fixture
 def setup_inbox():
+    if os.path.exists(INBOX_DIR):
+        shutil.rmtree(INBOX_DIR)
     os.makedirs(INBOX_DIR, exist_ok=True)
     yield
     if os.path.exists(INBOX_DIR):

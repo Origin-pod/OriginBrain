@@ -26,11 +26,15 @@ class BrainDB:
         self.ids = []
         self.embeddings = None
         
+        self.last_load_time = 0
         self._load_db()
         logger.info("BrainDB initialized (SimpleVectorStore).")
 
     def _load_db(self):
         if os.path.exists(self.data_file):
+            # Update last load time
+            self.last_load_time = os.path.getmtime(self.data_file)
+            
             with open(self.data_file, 'r') as f:
                 data = json.load(f)
                 self.documents = data.get('documents', [])
@@ -42,6 +46,22 @@ class BrainDB:
         else:
             self.embeddings = np.empty((0, 384)) # 384 is dim of all-MiniLM-L6-v2
 
+    def _check_for_updates(self):
+        """Reloads DB if the file on disk has changed since last load."""
+        if not os.path.exists(self.data_file):
+            return
+
+        current_mtime = os.path.getmtime(self.data_file)
+        if current_mtime > self.last_load_time:
+            logger.info("Detected change in BrainDB. Reloading...")
+            self._load_db()
+
+    def get_last_updated_at(self):
+        """Returns the timestamp of the last update."""
+        if os.path.exists(self.data_file):
+            return os.path.getmtime(self.data_file)
+        return 0
+
     def _save_db(self):
         data = {
             'documents': self.documents,
@@ -52,9 +72,15 @@ class BrainDB:
             json.dump(data, f)
         
         np.save(self.embeddings_file, self.embeddings)
+        
+        # Update last load time to avoid immediate reload
+        self.last_load_time = os.path.getmtime(self.data_file)
 
     def add_artifact(self, content, metadata, artifact_id=None):
         try:
+            # Check for external updates before adding
+            self._check_for_updates()
+            
             if not artifact_id:
                 artifact_id = str(uuid.uuid4())
                 
@@ -83,6 +109,9 @@ class BrainDB:
 
     def search(self, query, n_results=5):
         try:
+            # Check for external updates before searching
+            self._check_for_updates()
+            
             if self.embeddings.shape[0] == 0:
                 return None
                 
