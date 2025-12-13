@@ -9,3 +9,4 @@ yt-dlp
 sentence-transformers
 numpy
 scikit-learn
+flask
