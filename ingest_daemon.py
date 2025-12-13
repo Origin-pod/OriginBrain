@@ -69,13 +69,67 @@ class IngestHandler(FileSystemEventHandler):
             except jsonschema.exceptions.ValidationError as e:
                 raise ValueError(f"Schema Validation Failed: {e.message}")
 
-            # 4. Success -> Archive
-            logger.info(f"Valid payload: {data['type']}")
+            # 4. Dispatch to Connectors
+            logger.info(f"Processing payload type: {data['type']}")
+            
+            processed_data = None
+            
+            if data['type'] == 'url':
+                url = data['payload']
+                if "twitter.com" in url or "x.com" in url:
+                    from src.connectors.twitter_fetcher import fetch_tweet
+                    processed_data = fetch_tweet(url)
+                else:
+                    from src.connectors.web_scraper import fetch_url_content
+                    processed_data = fetch_url_content(url)
+                    
+            elif data['type'] == 'tweet':
+                from src.connectors.twitter_fetcher import fetch_tweet
+                processed_data = fetch_tweet(data['payload'])
+                
+            elif data['type'] == 'text':
+                processed_data = {
+                    "type": "note",
+                    "content": data['payload'],
+                    "created_at": datetime.now().isoformat(),
+                    "tags": ["quick_capture"]
+                }
+            
+            # 5. Save as Markdown Artifact
+            if processed_data:
+                self.save_artifact(processed_data, filename)
+                
+            # 6. Archive Original JSON
             self.archive_file(filepath)
             
         except Exception as e:
             logger.error(f"Failed to process {filename}: {str(e)}")
             self.move_to_error(filepath, str(e))
+
+    def save_artifact(self, data, original_filename):
+        """Saves processed data as a Markdown file in Archive"""
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        target_dir = os.path.join(ARCHIVE_DIR, date_str)
+        os.makedirs(target_dir, exist_ok=True)
+        
+        # Create filename from title or ID
+        base_name = os.path.splitext(original_filename)[0]
+        md_filename = f"{base_name}.md"
+        target_path = os.path.join(target_dir, md_filename)
+        
+        # Frontmatter
+        content = "---\n"
+        for key, value in data.items():
+            if key != "content":
+                content += f"{key}: {json.dumps(value)}\n"
+        content += "---\n\n"
+        
+        content += data.get("content", "")
+        
+        with open(target_path, "w") as f:
+            f.write(content)
+        
+        logger.info(f"Created Artifact: {target_path}")
 
     def archive_file(self, filepath):
         """Moves file to Archive/YYYY-MM-DD/"""
