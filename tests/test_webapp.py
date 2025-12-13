@@ -20,7 +20,7 @@ def setup_inbox():
 def test_index_route(client):
     rv = client.get('/')
     assert rv.status_code == 200
-    assert b"OriginSteward Drop" in rv.data
+    assert b"OriginSteward" in rv.data
 
 def test_drop_route(client, setup_inbox):
     rv = client.post('/drop', data={
@@ -43,3 +43,15 @@ def test_drop_route(client, setup_inbox):
         assert data['type'] == 'url'
         assert data['payload'] == 'https://example.com'
         assert data['note'] == 'Test note'
+
+def test_search_route(client):
+    rv = client.post('/search', 
+        json={'query': 'test'},
+        content_type='application/json'
+    )
+    
+    assert rv.status_code == 200
+    data = json.loads(rv.data)
+    assert 'results' in data
+    assert isinstance(data['results'], list)
+

@@ -1,39 +1,189 @@
 import os
 import json
 import time
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, jsonify
+from src.brain.vector_store import BrainDB
 
 app = Flask(__name__)
 INBOX_DIR = os.path.abspath("Inbox")
+BRAIN_DB_DIR = os.path.abspath("brain_db")
+
+# Initialize BrainDB
+brain = BrainDB(BRAIN_DB_DIR)
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OriginSteward Drop Zone</title>
+    <title>OriginSteward</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: -apple-system, system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; background: #f4f4f5; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        input[type="text"], textarea { width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #e4e4e7; border-radius: 6px; box-sizing: border-box; }
-        button { background: #18181b; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; width: 100%; }
-        button:hover { background: #27272a; }
-        .success { color: #16a34a; margin-top: 1rem; text-align: center; }
-        h1 { margin-top: 0; font-size: 1.5rem; color: #18181b; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; 
+            margin: 0;
+            padding: 2rem; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 2rem; }
+        .header h1 { margin: 0; font-size: 2.5rem; font-weight: 700; }
+        .header p { margin: 0.5rem 0 0; opacity: 0.9; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+        
+        .card { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 16px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .card h2 { margin-top: 0; font-size: 1.25rem; color: #18181b; }
+        
+        input[type="text"], textarea { 
+            width: 100%; 
+            padding: 0.875rem; 
+            margin-bottom: 1rem; 
+            border: 2px solid #e4e4e7; 
+            border-radius: 8px; 
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, textarea:focus { 
+            outline: none; 
+            border-color: #667eea; 
+        }
+        
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            padding: 0.875rem 1.5rem; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            width: 100%;
+            font-size: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active { transform: translateY(0); }
+        
+        .success { 
+            color: #16a34a; 
+            margin-top: 1rem; 
+            text-align: center; 
+            font-weight: 500;
+            animation: fadeIn 0.3s;
+        }
+        
+        .results { margin-top: 1.5rem; }
+        .result-item { 
+            background: #f9fafb; 
+            padding: 1rem; 
+            border-radius: 8px; 
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+        .result-item .score { 
+            color: #667eea; 
+            font-weight: 600; 
+            font-size: 0.875rem;
+        }
+        .result-item .source { 
+            color: #6b7280; 
+            font-size: 0.875rem; 
+            margin: 0.25rem 0;
+        }
+        .result-item .content { 
+            color: #374151; 
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+        .no-results { 
+            text-align: center; 
+            color: #6b7280; 
+            padding: 2rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>OriginSteward Drop</h1>
-        <form method="POST" action="/drop">
-            <input type="text" name="payload" placeholder="Paste URL here..." required autofocus>
-            <textarea name="note" placeholder="Optional note..." rows="3"></textarea>
-            <button type="submit">Drop to Brain</button>
-        </form>
-        {% if success %}
-            <div class="success">✓ Saved to Inbox</div>
-        {% endif %}
+    <div class="container">
+        <div class="header">
+            <h1>🧠 OriginSteward</h1>
+            <p>Your Personal Knowledge Companion</p>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>📥 Drop Content</h2>
+                <form method="POST" action="/drop">
+                    <input type="text" name="payload" placeholder="Paste URL or text here..." required autofocus>
+                    <textarea name="note" placeholder="Optional note..." rows="3"></textarea>
+                    <button type="submit">Drop to Brain</button>
+                </form>
+                {% if success %}
+                    <div class="success">✓ Saved to Inbox</div>
+                {% endif %}
+            </div>
+            
+            <div class="card">
+                <h2>🔍 Search Brain</h2>
+                <form id="searchForm" onsubmit="return handleSearch(event)">
+                    <input type="text" id="searchQuery" placeholder="Search your knowledge..." required>
+                    <button type="submit">Search</button>
+                </form>
+                <div id="searchResults" class="results"></div>
+            </div>
+        </div>
     </div>
+    
+    <script>
+        async function handleSearch(event) {
+            event.preventDefault();
+            const query = document.getElementById('searchQuery').value;
+            const resultsDiv = document.getElementById('searchResults');
+            
+            resultsDiv.innerHTML = '<div class="no-results">Searching...</div>';
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    resultsDiv.innerHTML = data.results.map(r => `
+                        <div class="result-item">
+                            <div class="score">Score: ${r.score.toFixed(3)}</div>
+                            <div class="source">${r.source}</div>
+                            <div class="source">${r.date}</div>
+                            <div class="content">${r.content.substring(0, 200)}...</div>
+                        </div>
+                    `).join('');
+                } else {
+                    resultsDiv.innerHTML = '<div class="no-results">No results found</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="no-results">Error: ' + error.message + '</div>';
+            }
+            
+            return false;
+        }
+    </script>
 </body>
 </html>
 """
@@ -61,6 +211,7 @@ def drop():
     }
     
     # Save to Inbox
+    os.makedirs(INBOX_DIR, exist_ok=True)
     filename = f"web_drop_{int(time.time())}.json"
     filepath = os.path.join(INBOX_DIR, filename)
     
@@ -69,6 +220,36 @@ def drop():
         
     return render_template_string(HTML_TEMPLATE, success=True)
 
+@app.route('/search', methods=['POST'])
+def search():
+    data = request.get_json()
+    query = data.get('query', '')
+    
+    if not query:
+        return jsonify({'error': 'Missing query'}), 400
+    
+    # Search the brain
+    results = brain.search(query, n_results=5)
+    
+    # Format results
+    formatted_results = []
+    if results and results['documents']:
+        documents = results['documents'][0]
+        metadatas = results['metadatas'][0]
+        distances = results['distances'][0]
+        
+        for i, doc in enumerate(documents):
+            meta = metadatas[i]
+            formatted_results.append({
+                'score': float(distances[i]),  # Convert numpy float32 to Python float
+                'source': meta.get('source_url', 'Unknown'),
+                'date': meta.get('created_at', 'Unknown'),
+                'content': doc
+            })
+    
+    return jsonify({'results': formatted_results})
+
 if __name__ == '__main__':
     os.makedirs(INBOX_DIR, exist_ok=True)
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5002)
+
