@@ -36,6 +36,15 @@ INPUT_SCHEMA = {
 }
 
 class IngestHandler(FileSystemEventHandler):
+    def __init__(self):
+        super().__init__()
+        try:
+            from src.brain.vector_store import BrainDB
+            self.brain = BrainDB()
+        except Exception as e:
+            logger.error(f"Failed to initialize BrainDB: {e}")
+            self.brain = None
+
     def on_created(self, event):
         if event.is_directory:
             return
@@ -95,7 +104,7 @@ class IngestHandler(FileSystemEventHandler):
                     "tags": ["quick_capture"]
                 }
             
-            # 5. Save as Markdown Artifact
+            # 5. Save as Markdown Artifact & Index
             if processed_data:
                 self.save_artifact(processed_data, filename)
                 
@@ -119,17 +128,31 @@ class IngestHandler(FileSystemEventHandler):
         
         # Frontmatter
         content = "---\n"
+        metadata = {}
         for key, value in data.items():
             if key != "content":
                 content += f"{key}: {json.dumps(value)}\n"
+                metadata[key] = str(value) # Chroma metadata must be strings/ints
         content += "---\n\n"
         
-        content += data.get("content", "")
+        body_content = data.get("content", "")
+        content += body_content
         
         with open(target_path, "w") as f:
             f.write(content)
         
         logger.info(f"Created Artifact: {target_path}")
+        
+        # Index in Brain
+        if self.brain:
+            try:
+                self.brain.add_artifact(
+                    content=body_content,
+                    metadata=metadata,
+                    artifact_id=base_name
+                )
+            except Exception as e:
+                logger.error(f"Failed to index artifact: {e}")
 
     def archive_file(self, filepath):
         """Moves file to Archive/YYYY-MM-DD/"""

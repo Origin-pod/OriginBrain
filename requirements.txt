@@ -6,3 +6,6 @@ beautifulsoup4
 readability-lxml
 markdownify
 yt-dlp
+sentence-transformers
+numpy
+scikit-learn
