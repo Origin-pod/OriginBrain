@@ -10,7 +10,8 @@
         "scripting"
     ],
     "host_permissions": [
-        "http://localhost:5002/*"
+        "http://localhost:5002/*",
+        "<all_urls>"
     ],
     "background": {
         "service_worker": "background.js"

@@ -195,6 +195,24 @@ HTML_TEMPLATE = """
             
             return false;
         }
+        
+        // Poll for status updates
+        function pollStatus() {
+            fetch('/status')
+                .then(response => response.json())
+                .then(data => {
+                    const syncStatusDiv = document.getElementById('syncStatus');
+                    if (data.last_updated) {
+                        const date = new Date(data.last_updated * 1000);
+                        syncStatusDiv.textContent = 'Last synced: ' + date.toLocaleString() + ' (' + data.doc_count + ' items)';
+                    }
+                })
+                .catch(console.error);
+        }
+        
+        // Poll every 2 seconds
+        setInterval(pollStatus, 2000);
+        pollStatus(); // Initial call
     </script>
 </body>
 </html>
@@ -263,6 +281,15 @@ def search():
     return jsonify({
         'results': formatted_results,
         'last_updated': last_updated
+    })
+
+@app.route('/status', methods=['GET'])
+def status():
+    # Check for updates to ensure we have the latest stats
+    brain._check_for_updates()
+    return jsonify({
+        'last_updated': brain.get_last_updated_at(),
+        'doc_count': len(brain.documents)
     })
 
 if __name__ == '__main__':

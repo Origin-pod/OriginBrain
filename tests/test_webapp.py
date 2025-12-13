@@ -65,3 +65,12 @@ def test_search_route(client):
         assert 'content' in result
         assert isinstance(result['score'], float)
 
+        assert isinstance(result['score'], float)
+
+def test_status_route(client):
+    rv = client.get('/status')
+    assert rv.status_code == 200
+    data = rv.json
+    assert 'last_updated' in data
+    assert 'doc_count' in data
+    assert isinstance(data['doc_count'], int)
