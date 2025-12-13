@@ -1,0 +1,8 @@
+watchdog
+pytest
+jsonschema
+requests
+beautifulsoup4
+readability-lxml
+markdownify
+yt-dlp
