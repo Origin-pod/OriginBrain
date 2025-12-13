@@ -1,0 +1,78 @@
+/* Floating Button Container */
+#origin-steward-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2147483647; /* Max z-index */
+    font-family: -apple-system, system-ui, sans-serif;
+}
+
+/* The Button */
+#origin-steward-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s, width 0.2s;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+#origin-steward-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+#origin-steward-btn:active {
+    transform: scale(0.95);
+}
+
+/* Drag Over State */
+#origin-steward-btn.drag-over {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.5);
+    background: #4f46e5;
+}
+
+/* Icon (Simple SVG) */
+#origin-steward-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+    pointer-events: none; /* Let clicks pass to button */
+}
+
+/* Toast Notification */
+#origin-steward-toast {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    background: #1f2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#origin-steward-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#origin-steward-toast.error {
+    background: #ef4444;
+}
+
+#origin-steward-toast.success {
+    background: #10b981;
+}

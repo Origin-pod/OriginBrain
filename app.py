@@ -2,9 +2,12 @@ import os
 import json
 import time
 from flask import Flask, request, render_template_string, jsonify
+from flask_cors import CORS
 from src.brain.vector_store import BrainDB
 
 app = Flask(__name__)
+CORS(app) # Enable CORS for all routes
+
 INBOX_DIR = os.path.abspath("Inbox")
 BRAIN_DB_DIR = os.path.abspath("brain_db")
 
@@ -26,13 +29,10 @@ HTML_TEMPLATE = """
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 800px; margin: 0 auto; }
         .header { text-align: center; color: white; margin-bottom: 2rem; }
         .header h1 { margin: 0; font-size: 2.5rem; font-weight: 700; }
         .header p { margin: 0.5rem 0 0; opacity: 0.9; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
         
         .card { 
             background: white; 
@@ -73,14 +73,6 @@ HTML_TEMPLATE = """
             box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
         button:active { transform: translateY(0); }
-         
-        .success { 
-            color: #16a34a; 
-            margin-top: 1rem; 
-            text-align: center; 
-            font-weight: 500;
-            animation: fadeIn 0.3s;
-        }
         
         .results { margin-top: 1.5rem; }
         .result-item { 
@@ -124,28 +116,14 @@ HTML_TEMPLATE = """
             <p>Your Personal Knowledge Companion</p>
         </div>
         
-        <div class="grid">
-            <div class="card">
-                <h2>📥 Drop Content</h2>
-                <form method="POST" action="/drop">
-                    <input type="text" name="payload" placeholder="Paste URL or text here..." required autofocus>
-                    <textarea name="note" placeholder="Optional note..." rows="3"></textarea>
-                    <button type="submit">Drop to Brain</button>
-                </form>
-                {% if success %}
-                    <div class="success">✓ Saved to Inbox</div>
-                {% endif %}
-            </div>
-            
-            <div class="card">
-                <h2>🔍 Search Brain</h2>
-                <div id="syncStatus" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem; text-align: right;"></div>
-                <form id="searchForm" onsubmit="return handleSearch(event)">
-                    <input type="text" id="searchQuery" placeholder="Search your knowledge..." required>
-                    <button type="submit">Search</button>
-                </form>
-                <div id="searchResults" class="results"></div>
-            </div>
+        <div class="card">
+            <h2>🔍 Search Brain</h2>
+            <div id="syncStatus" style="font-size: 0.8rem; color: #6b7280; margin-bottom: 1rem; text-align: right;"></div>
+            <form id="searchForm" onsubmit="return handleSearch(event)">
+                <input type="text" id="searchQuery" placeholder="Search your knowledge..." required>
+                <button type="submit">Search</button>
+            </form>
+            <div id="searchResults" class="results"></div>
         </div>
     </div>
     
@@ -252,7 +230,7 @@ def drop():
     with open(filepath, "w") as f:
         json.dump(data, f, indent=2)
         
-    return render_template_string(HTML_TEMPLATE, success=True)
+    return jsonify({'success': True, 'id': filename})
 
 @app.route('/search', methods=['POST'])
 def search():

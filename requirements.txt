@@ -10,3 +10,4 @@ sentence-transformers
 numpy
 scikit-learn
 flask
+flask-cors

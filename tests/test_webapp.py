@@ -31,7 +31,7 @@ def test_drop_route(client, setup_inbox):
     })
     
     assert rv.status_code == 200
-    assert b"Saved to Inbox" in rv.data
+    assert rv.json['success'] is True
     
     # Verify file created
     files = os.listdir(INBOX_DIR)
