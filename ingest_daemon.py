@@ -173,6 +173,11 @@ class IngestHandler(FileSystemEventHandler):
 
     def move_to_error(self, filepath, error_msg):
         """Moves file to Error/ and writes a log"""
+        # Check if file still exists before attempting to move
+        if not os.path.exists(filepath):
+            logger.warning(f"File {filepath} no longer exists, skipping error move")
+            return
+            
         filename = os.path.basename(filepath)
         target_path = os.path.join(ERROR_DIR, filename)
         
@@ -181,14 +186,17 @@ class IngestHandler(FileSystemEventHandler):
              timestamp = int(time.time())
              target_path = os.path.join(ERROR_DIR, f"{name}_{timestamp}{ext}")
 
-        shutil.move(filepath, target_path)
-        
-        # Write error log
-        log_path = target_path + ".log"
-        with open(log_path, "w") as f:
-            f.write(f"Error processing {filename}:\n{error_msg}")
+        try:
+            shutil.move(filepath, target_path)
             
-        logger.info(f"Moved {filename} to Error/")
+            # Write error log
+            log_path = target_path + ".log"
+            with open(log_path, "w") as f:
+                f.write(f"Error processing {filename}:\n{error_msg}")
+                
+            logger.info(f"Moved {filename} to Error/")
+        except Exception as e:
+            logger.error(f"Failed to move {filename} to Error/: {e}")
 
 def start_daemon():
     # Ensure directories exist
