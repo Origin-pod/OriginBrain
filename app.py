@@ -173,14 +173,41 @@ HTML_TEMPLATE = """
                 }
                 
                 if (data.results && data.results.length > 0) {
-                    resultsDiv.innerHTML = data.results.map(r => `
+                    resultsDiv.innerHTML = data.results.map(r => {
+                        let sourceHtml = `<div class="source">${r.source}</div>`;
+                        let actionHtml = '';
+                        
+                        // Check if source is a URL
+                        if (r.source.startsWith('http')) {
+                            sourceHtml = `<div class="source"><a href="${r.source}" target="_blank" style="color: #667eea; text-decoration: none; hover: underline;">${r.source}</a></div>`;
+                            actionHtml = `
+                                <div style="margin-top: 0.5rem;">
+                                    <a href="${r.source}" target="_blank" style="
+                                        display: inline-block;
+                                        background: #f3f4f6;
+                                        color: #374151;
+                                        padding: 0.25rem 0.75rem;
+                                        border-radius: 4px;
+                                        text-decoration: none;
+                                        font-size: 0.875rem;
+                                        font-weight: 500;
+                                        transition: background 0.2s;
+                                    ">Open Link ↗</a>
+                                </div>
+                            `;
+                        }
+                        
+                        return `
                         <div class="result-item">
-                            <div class="score">Score: ${r.score.toFixed(3)}</div>
-                            <div class="source">${r.source}</div>
-                            <div class="source">${r.date}</div>
-                            <div class="content">${r.content.substring(0, 200)}...</div>
+                            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                <div class="score">Score: ${r.score.toFixed(3)}</div>
+                                <div style="font-size: 0.75rem; color: #9ca3af;">${r.date}</div>
+                            </div>
+                            ${sourceHtml}
+                            <div class="content">${r.content.substring(0, 300)}...</div>
+                            ${actionHtml}
                         </div>
-                    `).join('');
+                    `}).join('');
                 } else {
                     resultsDiv.innerHTML = '<div class="no-results">No results found</div>';
                 }

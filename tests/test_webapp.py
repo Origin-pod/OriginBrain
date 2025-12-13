@@ -56,4 +56,12 @@ def test_search_route(client):
     data = json.loads(rv.data)
     assert 'results' in data
     assert isinstance(data['results'], list)
+    
+    # Verify structure of results
+    if data['results']:
+        result = data['results'][0]
+        assert 'score' in result
+        assert 'source' in result
+        assert 'content' in result
+        assert isinstance(result['score'], float)
 
