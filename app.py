@@ -198,7 +198,7 @@ HTML_TEMPLATE = """
         
         // Poll for status updates
         function pollStatus() {
-            fetch('/status')
+            fetch('/status?t=' + new Date().getTime())
                 .then(response => response.json())
                 .then(data => {
                     const syncStatusDiv = document.getElementById('syncStatus');
@@ -240,15 +240,15 @@ def drop():
         "note": note
     }
     
-    # Save to Inbox
-    os.makedirs(INBOX_DIR, exist_ok=True)
-    filename = f"web_drop_{int(time.time())}.json"
-    filepath = os.path.join(INBOX_DIR, filename)
-    
-    with open(filepath, "w") as f:
-        json.dump(data, f, indent=2)
-        
-    return jsonify({'success': True, 'id': filename})
+    # Save to DB
+    try:
+        from src.db.db import BrainDB as PostgresDB
+        db = PostgresDB()
+        drop_id = db.insert_drop(type_, payload, note)
+        db.close()
+        return jsonify({'success': True, 'id': drop_id})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -291,6 +291,63 @@ def status():
         'last_updated': brain.get_last_updated_at(),
         'doc_count': len(brain.documents)
     })
+
+# --- API Routes for React Frontend ---
+
+@app.route('/api/stats', methods=['GET'])
+def api_stats():
+    try:
+        from src.db.db import BrainDB as PostgresDB
+        db = PostgresDB()
+        
+        # Get daily stats
+        daily_stats = db.get_daily_stats(days=30)
+        
+        # Get total count
+        total_count = db.get_artifact_count()
+        
+        db.close()
+        
+        return jsonify({
+            'total_count': total_count,
+            'daily_activity': daily_stats,
+            'last_updated': brain.get_last_updated_at()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recent', methods=['GET'])
+def api_recent():
+    try:
+        from src.db.db import BrainDB as PostgresDB
+        db = PostgresDB()
+        recent = db.get_recent_artifacts(limit=20)
+        db.close()
+        return jsonify({'results': recent})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/themes', methods=['GET'])
+def api_themes():
+    try:
+        from src.brain.curator import Curator
+        curator = Curator()
+        themes = curator.get_themes(n_clusters=5)
+        return jsonify({'themes': themes})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/resurface', methods=['GET'])
+def api_resurface():
+    try:
+        from src.db.db import BrainDB as PostgresDB
+        db = PostgresDB()
+        # Get 3 random items to resurface
+        random_items = db.get_random_artifacts(limit=3)
+        db.close()
+        return jsonify({'results': random_items})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     os.makedirs(INBOX_DIR, exist_ok=True)

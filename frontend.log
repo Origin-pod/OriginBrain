@@ -1,0 +1,29 @@
+
+> frontend@0.0.0 dev
+> vite
+
+You are using Node.js 22.0.0. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.
+2:13:00 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+
+  VITE v7.2.7  ready in 1376 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+2:13:01 PM [vite] http proxy error: /api/stats
+Error: connect ECONNREFUSED 127.0.0.1:5002
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
+2:13:01 PM [vite] http proxy error: /api/recent
+Error: connect ECONNREFUSED 127.0.0.1:5002
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
+2:13:01 PM [vite] http proxy error: /api/themes
+Error: connect ECONNREFUSED 127.0.0.1:5002
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
+2:13:01 PM [vite] http proxy error: /api/stats
+Error: connect ECONNREFUSED 127.0.0.1:5002
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
+2:13:01 PM [vite] http proxy error: /api/recent
+Error: connect ECONNREFUSED 127.0.0.1:5002
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
+2:13:01 PM [vite] http proxy error: /api/themes
+Error: connect ECONNREFUSED 127.0.0.1:5002
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)

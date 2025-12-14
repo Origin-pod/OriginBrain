@@ -1,6 +1,6 @@
 // OriginSteward Background Script
 
-const API_URL = "http://localhost:5002/drop";
+const API_URL = "http://127.0.0.1:5002/drop";
 
 // --- Context Menu ---
 chrome.runtime.onInstalled.addListener(() => {
@@ -69,10 +69,16 @@ async function performDrop(type, content, note, sourceUrl, sourceTitle) {
         formData.append('payload', content);
         formData.append('note', `${note} | Source: ${sourceTitle} (${sourceUrl})`);
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         const response = await fetch(API_URL, {
             method: 'POST',
-            body: formData
+            body: formData,
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             throw new Error(`Server returned ${response.status}`);
@@ -81,6 +87,6 @@ async function performDrop(type, content, note, sourceUrl, sourceTitle) {
         return true;
     } catch (error) {
         console.error("Drop failed:", error);
-        return false;
+        return false; // This will trigger "Failed to save" in content.js
     }
 }

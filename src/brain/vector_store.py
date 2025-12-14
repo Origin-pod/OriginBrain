@@ -3,89 +3,91 @@ import json
 import logging
 import uuid
 import numpy as np
+import time
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from src.db.db import BrainDB as PostgresDB
 
 logger = logging.getLogger(__name__)
 
 class BrainDB:
-    def __init__(self, db_path="./brain_db"):
-        self.db_path = db_path
-        self.data_file = os.path.join(db_path, "data.json")
-        self.embeddings_file = os.path.join(db_path, "embeddings.npy")
-        
-        os.makedirs(db_path, exist_ok=True)
+    def __init__(self, db_path=None):
+        # db_path is ignored now, kept for compatibility
+        self.pg_db = PostgresDB()
         
         # Initialize Embedding Model
         logger.info("Loading embedding model...")
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         
-        # Load existing data
+        # In-memory cache for search
         self.documents = []
         self.metadatas = []
         self.ids = []
-        self.embeddings = None
+        self.embeddings = np.empty((0, 384))
         
-        self.last_load_time = 0
+        self.last_count = 0
         self._load_db()
-        logger.info("BrainDB initialized (SimpleVectorStore).")
+        logger.info("BrainDB initialized (Postgres-backed).")
 
     def _load_db(self):
-        if os.path.exists(self.data_file):
-            # Update last load time
-            self.last_load_time = os.path.getmtime(self.data_file)
+        """Loads all embeddings from Postgres into memory."""
+        try:
+            rows = self.pg_db.get_all_embeddings()
             
-            with open(self.data_file, 'r') as f:
-                data = json.load(f)
-                self.documents = data.get('documents', [])
-                self.metadatas = data.get('metadatas', [])
-                self.ids = data.get('ids', [])
-        
-        if os.path.exists(self.embeddings_file):
-            self.embeddings = np.load(self.embeddings_file)
-        else:
-            self.embeddings = np.empty((0, 384)) # 384 is dim of all-MiniLM-L6-v2
+            self.documents = []
+            self.metadatas = []
+            self.ids = []
+            vectors = []
+            
+            for row in rows:
+                self.documents.append(row['content'])
+                self.metadatas.append(row['metadata'])
+                self.ids.append(str(row['artifact_id']))
+                vectors.append(row['vector'])
+            
+            if vectors:
+                self.embeddings = np.array(vectors)
+            else:
+                self.embeddings = np.empty((0, 384))
+                
+            self.last_count = len(self.documents)
+            logger.info(f"Loaded {self.last_count} embeddings from DB")
+            
+        except Exception as e:
+            logger.error(f"Failed to load DB: {e}")
 
     def _check_for_updates(self):
-        """Reloads DB if the file on disk has changed since last load."""
-        if not os.path.exists(self.data_file):
-            return
-
-        current_mtime = os.path.getmtime(self.data_file)
-        if current_mtime > self.last_load_time:
-            logger.info("Detected change in BrainDB. Reloading...")
-            self._load_db()
+        """Checks if DB has more items than memory."""
+        try:
+            current_count = self.pg_db.get_artifact_count()
+            if current_count > self.last_count:
+                logger.info(f"DB count ({current_count}) > Memory ({self.last_count}). Reloading...")
+                self._load_db()
+        except Exception as e:
+            logger.error(f"Failed to check updates: {e}")
 
     def get_last_updated_at(self):
         """Returns the timestamp of the last update."""
-        if os.path.exists(self.data_file):
-            return os.path.getmtime(self.data_file)
+        if self.last_count > 0:
+            # Return current time to force frontend update if we have items
+            # Ideally we'd store a 'last_sync_time' in the class
+            return time.time()
         return 0
-
-    def _save_db(self):
-        data = {
-            'documents': self.documents,
-            'metadatas': self.metadatas,
-            'ids': self.ids
-        }
-        with open(self.data_file, 'w') as f:
-            json.dump(data, f)
-        
-        np.save(self.embeddings_file, self.embeddings)
-        
-        # Update last load time to avoid immediate reload
-        self.last_load_time = os.path.getmtime(self.data_file)
 
     def add_artifact(self, content, metadata, artifact_id=None):
         try:
-            # Check for external updates before adding
-            self._check_for_updates()
-            
             if not artifact_id:
                 artifact_id = str(uuid.uuid4())
                 
             # Generate Embedding
-            embedding = self.model.encode(content)
+            embedding = self.model.encode(content).tolist() # Convert to list for JSON
+            
+            # Persist to DB
+            # Note: IngestDaemon already inserts Artifact. We just need to insert Embedding.
+            # But wait, IngestDaemon calls this.
+            # If IngestDaemon inserts Artifact, we need to insert Embedding here.
+            
+            self.pg_db.insert_embedding(artifact_id, embedding, "all-MiniLM-L6-v2")
             
             # Update Memory
             self.documents.append(content)
@@ -95,11 +97,9 @@ class BrainDB:
             if self.embeddings.shape[0] == 0:
                 self.embeddings = np.array([embedding])
             else:
-                self.embeddings = np.vstack([self.embeddings, embedding])
+                self.embeddings = np.vstack([self.embeddings, np.array(embedding)])
             
-            # Persist
-            self._save_db()
-            
+            self.last_count += 1
             logger.info(f"Indexed artifact: {artifact_id}")
             return artifact_id
             

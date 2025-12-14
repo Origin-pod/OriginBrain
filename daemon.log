@@ -1,0 +1,6 @@
+2025-12-14 14:13:02 - Loading embedding model...
+2025-12-14 14:13:02 - Use pytorch device_name: mps
+2025-12-14 14:13:02 - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2025-12-14 14:13:07 - Loaded 12 embeddings from DB
+2025-12-14 14:13:07 - BrainDB initialized (Postgres-backed).
+2025-12-14 14:13:07 - OriginSteward Daemon started (DB Polling Mode)
