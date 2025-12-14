@@ -531,6 +531,239 @@ def api_process_all_artifacts():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# --- New API Routes for Milestone 2: Intelligence Layer ---
+
+@app.route('/api/insights/personalized', methods=['GET'])
+def api_personalized_insights():
+    """Get personalized insights for the user"""
+    try:
+        from src.brain.insights_engine import InsightsEngine
+
+        engine = InsightsEngine()
+        insights = engine.generate_personalized_insights()
+
+        return jsonify({
+            'success': True,
+            'insights': insights
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/insights/trends', methods=['GET'])
+def api_trends():
+    """Get trending topics in user's knowledge base"""
+    try:
+        from src.brain.insights_engine import InsightsEngine
+
+        days = int(request.args.get('days', 30))
+        engine = InsightsEngine()
+        trends = engine.detect_trends(days)
+
+        return jsonify({
+            'success': True,
+            'trends': trends
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/insights/knowledge-gaps', methods=['GET'])
+def api_knowledge_gaps():
+    """Get identified knowledge gaps"""
+    try:
+        from src.brain.insights_engine import InsightsEngine
+
+        engine = InsightsEngine()
+        gaps = engine.identify_knowledge_gaps()
+
+        return jsonify({
+            'success': True,
+            'gaps': gaps
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/insights/consumption-patterns', methods=['GET'])
+def api_consumption_patterns():
+    """Get user's consumption patterns analysis"""
+    try:
+        from src.brain.insights_engine import InsightsEngine
+
+        engine = InsightsEngine()
+        patterns = engine.analyze_consumption_patterns()
+
+        return jsonify({
+            'success': True,
+            'patterns': patterns
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/insights/entity-network', methods=['GET'])
+def api_entity_network():
+    """Get entity network visualization data"""
+    try:
+        from src.brain.insights_engine import InsightsEngine
+
+        engine = InsightsEngine()
+        network = engine.build_entity_network()
+
+        return jsonify({
+            'success': True,
+            'network': network
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recommendations/personalized', methods=['GET'])
+def api_personalized_recommendations():
+    """Get personalized recommendations"""
+    try:
+        from src.brain.recommendation_engine import RecommendationEngine
+
+        limit = int(request.args.get('limit', 10))
+        engine = RecommendationEngine()
+        recommendations = engine.get_personalized_queue(limit=limit)
+
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recommendations/similar', methods=['GET'])
+def api_similar_recommendations():
+    """Get recommendations based on consumed content"""
+    try:
+        from src.brain.recommendation_engine import RecommendationEngine
+
+        limit = int(request.args.get('limit', 5))
+        engine = RecommendationEngine()
+        recommendations = engine.get_similar_to_consumed(limit)
+
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recommendations/goal-focused', methods=['POST'])
+def api_goal_focused_recommendations():
+    """Get recommendations aligned with specific goal"""
+    try:
+        from src.brain.recommendation_engine import RecommendationEngine
+
+        data = request.get_json()
+        goal_id = data.get('goal_id')
+        limit = data.get('limit', 5)
+
+        if not goal_id:
+            return jsonify({'error': 'Missing goal_id'}), 400
+
+        engine = RecommendationEngine()
+        recommendations = engine.get_goal_focused_recommendations(goal_id, limit)
+
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/recommendations/discover', methods=['GET'])
+def api_discover_topics():
+    """Discover new and emerging topics"""
+    try:
+        from src.brain.recommendation_engine import RecommendationEngine
+
+        limit = int(request.args.get('limit', 5))
+        engine = RecommendationEngine()
+        discoveries = engine.discover_new_topics(limit)
+
+        return jsonify({
+            'success': True,
+            'discoveries': discoveries
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/relationships/discover-all', methods=['POST'])
+def api_discover_all_relationships():
+    """Discover all types of relationships for artifacts"""
+    try:
+        from src.brain.relationship_mapper import RelationshipMapper
+
+        data = request.get_json()
+        artifact_id = data.get('artifact_id')  # Optional: process specific artifact
+
+        mapper = RelationshipMapper()
+        stats = mapper.discover_all_relationships(artifact_id)
+
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/relationships/knowledge-graph', methods=['GET'])
+def api_knowledge_graph():
+    """Get complete knowledge graph data"""
+    try:
+        from src.brain.relationship_mapper import RelationshipMapper
+
+        mapper = RelationshipMapper()
+        graph = mapper.build_knowledge_graph()
+
+        return jsonify({
+            'success': True,
+            'graph': graph
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/analytics/dashboard', methods=['GET'])
+def api_dashboard_analytics():
+    """Get comprehensive dashboard analytics"""
+    try:
+        from src.db.db import BrainDB
+        from src.brain.insights_engine import InsightsEngine
+
+        db = BrainDB()
+        engine = InsightsEngine()
+
+        # Basic stats
+        total_artifacts = db.get_artifact_count()
+
+        # Consumption stats
+        artifacts = db.get_artifacts_with_extended()
+        consumption_stats = {
+            'unconsumed': sum(1 for a in artifacts if a.get('consumption_status') == 'unconsumed'),
+            'reading': sum(1 for a in artifacts if a.get('consumption_status') == 'reading'),
+            'reviewed': sum(1 for a in artifacts if a.get('consumption_status') == 'reviewed'),
+            'applied': sum(1 for a in artifacts if a.get('consumption_status') == 'applied')
+        }
+
+        # Trending topics
+        trends = engine.detect_trends(days=7)[:5]  # Top 5 from last week
+
+        # Recent queue
+        queue = db.get_consumption_queue('daily', limit=5)
+
+        return jsonify({
+            'success': True,
+            'analytics': {
+                'total_artifacts': total_artifacts,
+                'consumption_stats': consumption_stats,
+                'trending_topics': trends,
+                'queue_items': queue,
+                'consumption_rate': consumption_stats['applied'] / total_artifacts if total_artifacts > 0 else 0
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     os.makedirs(INBOX_DIR, exist_ok=True)
     app.run(host='0.0.0.0', port=5002)
