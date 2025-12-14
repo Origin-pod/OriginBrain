@@ -31,6 +31,65 @@ class BrainDB:
         if self.conn:
             self.conn.close()
 
+    # --- Search Support Methods ---
+    def get_artifacts_for_indexing(self, limit: int = None) -> list:
+        """Get artifacts with embeddings for search indexing."""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT a.id, e.vector as embedding, a.title, a.content
+                FROM artifacts a
+                LEFT JOIN embeddings e ON a.id = e.artifact_id
+                WHERE e.vector IS NOT NULL
+                ORDER BY a.created_at DESC
+                LIMIT %s
+            """, (limit,))
+            return [dict(row) for row in cur.fetchall()]
+
+    def get_artifact_count_since(self, since_date: datetime) -> int:
+        """Get count of artifacts created since given date."""
+        conn = self.get_connection()
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT COUNT(*) FROM artifacts
+                WHERE created_at > %s
+            """, (since_date,))
+            return cur.fetchone()[0]
+
+    def search_artifacts(self, query: str, limit: int = 10, filters: Dict = None) -> List[Dict]:
+        """Search artifacts using text search."""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            # Build search query
+            sql = """
+                SELECT DISTINCT a.id, a.title, a.content, a.created_at,
+                       ae.consumption_status, ae.importance_score
+                FROM artifacts a
+                LEFT JOIN artifacts_extended ae ON a.id = ae.artifact_id
+                WHERE a.title ILIKE %s OR a.content ILIKE %s
+            """
+            params = [f"%{query}%", f"%{query}%"]
+
+            # Apply filters
+            if filters:
+                if "consumption_status" in filters:
+                    status_list = filters["consumption_status"]
+                    if isinstance(status_list, str):
+                        status_list = [status_list]
+                    placeholders = ",".join(["%s"] * len(status_list))
+                    sql += f" AND ae.consumption_status IN ({placeholders})"
+                    params.extend(status_list)
+
+                if "min_importance" in filters:
+                    sql += " AND COALESCE(ae.importance_score, 0) >= %s"
+                    params.append(filters["min_importance"])
+
+            sql += " ORDER BY a.created_at DESC LIMIT %s"
+            params.append(limit)
+
+            cur.execute(sql, params)
+            return [dict(row) for row in cur.fetchall()]
+
     # --- Drops ---
     def insert_drop(self, type_, payload, note=None):
         conn = self.get_connection()

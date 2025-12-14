@@ -764,6 +764,227 @@ def api_dashboard_analytics():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# --- New API Routes for Milestone 4: Optimization & Polish ---
+
+@app.route('/api/ai/summarize', methods=['POST'])
+def api_summarize_artifact():
+    """Generate AI-powered summary for an artifact"""
+    try:
+        from src.brain.summarizer import AISummarizer
+
+        data = request.get_json()
+        artifact_id = data.get('artifact_id')
+        summary_type = data.get('type', 'short')
+
+        if not artifact_id:
+            return jsonify({'error': 'Missing artifact_id'}), 400
+
+        summarizer = AISummarizer()
+        result = summarizer.generate_summary(artifact_id, summary_type)
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/ask', methods=['POST'])
+def api_ask_question():
+    """Ask a question and get AI-powered answer from knowledge base"""
+    try:
+        from src.brain.summarizer import AISummarizer
+
+        data = request.get_json()
+        question = data.get('question')
+        artifact_id = data.get('artifact_id')  # Optional: search specific artifact
+
+        if not question:
+            return jsonify({'error': 'Missing question'}), 400
+
+        summarizer = AISummarizer()
+        result = summarizer.answer_question(question, artifact_id)
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ai/insights-report', methods=['GET'])
+def api_insights_report():
+    """Generate comprehensive insights report"""
+    try:
+        from src.brain.summarizer import AISummarizer
+
+        limit = int(request.args.get('limit', 20))
+        summarizer = AISummarizer()
+        report = summarizer.generate_insights_report(limit)
+
+        return jsonify({
+            'success': True,
+            'report': report
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/export/artifacts', methods=['POST'])
+def api_export_artifacts():
+    """Export artifacts in specified format"""
+    try:
+        from src.brain.export_service import ExportService
+
+        data = request.get_json()
+        format_type = data.get('format', 'json')
+        artifact_ids = data.get('artifact_ids', [])
+        filters = data.get('filters', {})
+
+        export_service = ExportService()
+        result = export_service.export_artifacts(format_type, artifact_ids, filters)
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/export/knowledge-graph', methods=['POST'])
+def api_export_knowledge_graph():
+    """Export knowledge graph data"""
+    try:
+        from src.brain.export_service import ExportService
+
+        data = request.get_json()
+        format_type = data.get('format', 'json')
+
+        export_service = ExportService()
+        result = export_service.export_knowledge_graph(format_type)
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# --- Accelerated Search Endpoints ---
+
+# Initialize accelerated search service
+from src.brain.accelerated_search import AcceleratedSearch
+accelerated_search = AcceleratedSearch()
+
+@app.route('/api/search/rebuild-index', methods=['POST'])
+def api_rebuild_search_index():
+    """Rebuild the accelerated search index"""
+    try:
+        data = request.get_json()
+        force = data.get('force', False)
+
+        result = accelerated_search.rebuild_index(force=force)
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/search/similar', methods=['POST'])
+def api_search_similar():
+    """Search for similar artifacts using accelerated vector search"""
+    try:
+        data = request.get_json()
+        query_embedding = data.get('embedding')
+        k = data.get('k', 10)
+        filters = data.get('filters', {})
+
+        if not query_embedding:
+            return jsonify({'error': 'Query embedding is required'}), 400
+
+        results = accelerated_search.search_similar(query_embedding, k, filters)
+
+        return jsonify({
+            'success': True,
+            'results': results,
+            'count': len(results)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/search/hybrid', methods=['POST'])
+def api_search_hybrid():
+    """Hybrid search combining text and vector similarity"""
+    try:
+        data = request.get_json()
+        query = data.get('query', '')
+        query_embedding = data.get('embedding')
+        k = data.get('k', 10)
+        text_weight = data.get('text_weight', 0.3)
+        vector_weight = data.get('vector_weight', 0.7)
+        filters = data.get('filters', {})
+
+        if not query_embedding:
+            return jsonify({'error': 'Query embedding is required'}), 400
+
+        results = accelerated_search.search_hybrid(
+            query, query_embedding, k, text_weight, vector_weight, filters
+        )
+
+        return jsonify({
+            'success': True,
+            'results': results,
+            'count': len(results)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/search/recommendations/<artifact_id>', methods=['GET'])
+def api_get_recommendations(artifact_id):
+    """Get artifact recommendations based on similarity"""
+    try:
+        k = request.args.get('k', 5, type=int)
+        exclude_consumed = request.args.get('exclude_consumed', 'true').lower() == 'true'
+
+        recommendations = accelerated_search.recommend_similar_artifacts(
+            artifact_id, k, exclude_consumed
+        )
+
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations,
+            'count': len(recommendations)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/search/stats', methods=['GET'])
+def api_search_stats():
+    """Get search index statistics"""
+    try:
+        stats = accelerated_search.get_index_stats()
+
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/search/optimize', methods=['POST'])
+def api_optimize_search_index():
+    """Optimize the search index for better performance"""
+    try:
+        result = accelerated_search.optimize_index()
+
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     os.makedirs(INBOX_DIR, exist_ok=True)
     app.run(host='0.0.0.0', port=5002)

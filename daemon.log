@@ -4,3 +4,11 @@
 2025-12-14 14:13:07 - Loaded 12 embeddings from DB
 2025-12-14 14:13:07 - BrainDB initialized (Postgres-backed).
 2025-12-14 14:13:07 - OriginSteward Daemon started (DB Polling Mode)
+2025-12-14 15:20:19 - Found 1 pending drops
+2025-12-14 15:20:19 - Processing drop f3faaf27-4951-41a7-ba97-46d5cfd63c81 (test)
+2025-12-14 15:20:39 - Found 1 pending drops
+2025-12-14 15:20:39 - Processing drop 2669074b-b1e6-4c2f-9db3-a5e55c49ff6a (test)
+2025-12-14 15:20:48 - Found 1 pending drops
+2025-12-14 15:20:48 - Processing drop 20aa41d8-9551-44c9-997e-f87e4ece11b2 (test)
+2025-12-14 15:20:57 - Found 1 pending drops
+2025-12-14 15:20:57 - Processing drop fbc5d9e4-f83c-4632-a768-f92354a0c842 (test)
