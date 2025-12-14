@@ -4,7 +4,7 @@ import os
 import uuid
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -157,9 +157,374 @@ class BrainDB:
         conn = self.get_connection()
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT id, title, content, metadata, created_at 
-                FROM artifacts 
-                ORDER BY RANDOM() 
+                SELECT id, title, content, metadata, created_at
+                FROM artifacts
+                ORDER BY RANDOM()
                 LIMIT %s
             """, (limit,))
             return cur.fetchall()
+
+    # --- Artifacts Extended (for Insights & Curation) ---
+    def upsert_artifact_extended(self, artifact_id, **kwargs):
+        """Insert or update artifact extended metadata"""
+        conn = self.get_connection()
+
+        # Check if record exists
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM artifacts_extended WHERE artifact_id = %s", (artifact_id,))
+            exists = cur.fetchone() is not None
+
+        if exists:
+            # Update existing record
+            set_clauses = []
+            values = []
+
+            for key, value in kwargs.items():
+                if key in ['consumption_score', 'importance_score', 'consumption_status', 'last_consumed_at',
+                          'consumption_count', 'estimated_read_time', 'auto_tags', 'entities', 'insights',
+                          'summary', 'related_artifacts', 'parent_artifact', 'view_count', 'engagement_score']:
+                    set_clauses.append(f"{key} = %s")
+                    values.append(value)
+
+            if set_clauses:
+                values.append(artifact_id)
+                query = f"""
+                    UPDATE artifacts_extended
+                    SET {', '.join(set_clauses)}
+                    WHERE artifact_id = %s
+                """
+                with conn.cursor() as cur:
+                    cur.execute(query, values)
+        else:
+            # Insert new record
+            columns = ['artifact_id']
+            values = [artifact_id]
+            placeholders = ['%s']
+
+            # Add all provided fields
+            for key, value in kwargs.items():
+                if key in ['consumption_score', 'importance_score', 'consumption_status', 'last_consumed_at',
+                          'consumption_count', 'estimated_read_time', 'auto_tags', 'entities', 'insights',
+                          'summary', 'related_artifacts', 'parent_artifact', 'view_count', 'engagement_score']:
+                    columns.append(key)
+                    values.append(value)
+                    placeholders.append('%s')
+
+            query = f"""
+                INSERT INTO artifacts_extended ({', '.join(columns)})
+                VALUES ({', '.join(placeholders)})
+            """
+            with conn.cursor() as cur:
+                cur.execute(query, values)
+
+    def get_artifact_extended(self, artifact_id):
+        """Get artifact extended metadata"""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT ae.*, a.title, a.content, a.metadata, a.created_at as artifact_created_at
+                FROM artifacts_extended ae
+                JOIN artifacts a ON ae.artifact_id = a.id
+                WHERE ae.artifact_id = %s
+            """, (artifact_id,))
+            return cur.fetchone()
+
+    def get_artifacts_with_extended(self, limit=None, consumption_status=None):
+        """Get artifacts with their extended metadata"""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            query = """
+                SELECT a.*, ae.consumption_score, ae.importance_score, ae.consumption_status,
+                       ae.last_consumed_at, ae.consumption_count, ae.estimated_read_time,
+                       ae.auto_tags, ae.entities, ae.insights, ae.summary, ae.view_count,
+                       ae.engagement_score, ae.related_artifacts
+                FROM artifacts a
+                LEFT JOIN artifacts_extended ae ON a.id = ae.artifact_id
+            """
+            params = []
+
+            if consumption_status:
+                query += " WHERE ae.consumption_status = %s"
+                params.append(consumption_status)
+
+            query += " ORDER BY a.created_at DESC"
+
+            if limit:
+                query += " LIMIT %s"
+                params.append(limit)
+
+            cur.execute(query, params)
+            return cur.fetchall()
+
+    # --- Consumption Events ---
+    def track_consumption_event(self, artifact_id, event_type, duration_seconds=None,
+                               engagement_score=None, scroll_depth=None, session_id=None,
+                               source=None, metadata=None):
+        """Track a consumption event for an artifact"""
+        conn = self.get_connection()
+        event_id = str(uuid.uuid4())
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO consumption_events
+                (id, artifact_id, event_type, duration_seconds, engagement_score,
+                 scroll_depth, session_id, source, metadata)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (event_id, artifact_id, event_type, duration_seconds, engagement_score,
+                  scroll_depth, session_id, source, Json(metadata or {})))
+
+        # Update artifact consumption stats
+        self._update_consumption_stats(artifact_id, event_type, duration_seconds, engagement_score)
+
+        return event_id
+
+    def _update_consumption_stats(self, artifact_id, event_type, duration_seconds, engagement_score):
+        """Update artifact consumption statistics"""
+        conn = self.get_connection()
+
+        # Determine engagement delta based on event type
+        engagement_delta = {
+            'view': 0.1,
+            'skim': 0.3,
+            'read': 0.7,
+            'highlight': 0.2,
+            'note': 0.5,
+            'apply': 1.0,
+            'share': 0.8
+        }.get(event_type, 0.1)
+
+        with conn.cursor() as cur:
+            # Check if artifact_extended record exists
+            cur.execute("SELECT id FROM artifacts_extended WHERE artifact_id = %s", (artifact_id,))
+            exists = cur.fetchone() is not None
+
+            if exists:
+                cur.execute("""
+                    UPDATE artifacts_extended
+                    SET consumption_count = consumption_count + 1,
+                        view_count = view_count + CASE WHEN %s = 'view' THEN 1 ELSE 0 END,
+                        engagement_score = LEAST(engagement_score + %s, 10.0),
+                        consumption_status = CASE
+                            WHEN %s = 'applied' THEN 'applied'
+                            WHEN %s = 'read' AND consumption_status != 'applied' THEN 'reviewed'
+                            WHEN %s = 'skim' AND consumption_status NOT IN ('reviewed', 'applied') THEN 'reading'
+                            ELSE consumption_status
+                        END,
+                        last_consumed_at = NOW()
+                    WHERE artifact_id = %s
+                """, (event_type, engagement_delta, event_type, event_type, event_type, artifact_id))
+
+    def get_consumption_events(self, artifact_id=None, event_type=None, limit=None):
+        """Get consumption events, optionally filtered"""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            query = "SELECT * FROM consumption_events WHERE 1=1"
+            params = []
+
+            if artifact_id:
+                query += " AND artifact_id = %s"
+                params.append(artifact_id)
+
+            if event_type:
+                query += " AND event_type = %s"
+                params.append(event_type)
+
+            query += " ORDER BY created_at DESC"
+
+            if limit:
+                query += " LIMIT %s"
+                params.append(limit)
+
+            cur.execute(query, params)
+            return cur.fetchall()
+
+    # --- Artifact Relationships ---
+    def create_relationship(self, source_artifact_id, target_artifact_id, relationship_type,
+                           strength, evidence=None, created_by='auto'):
+        """Create a relationship between two artifacts"""
+        conn = self.get_connection()
+        relationship_id = str(uuid.uuid4())
+
+        with conn.cursor() as cur:
+            try:
+                cur.execute("""
+                    INSERT INTO artifact_relationships
+                    (id, source_artifact, target_artifact, relationship_type, strength, evidence, created_by)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (relationship_id, source_artifact_id, target_artifact_id,
+                      relationship_type, strength, evidence, created_by))
+
+                # Update related_artifacts arrays
+                self._update_related_artifacts(source_artifact_id, target_artifact_id)
+
+                return relationship_id
+            except psycopg2.IntegrityError:
+                # Relationship already exists
+                return None
+
+    def _update_related_artifacts(self, artifact1_id, artifact2_id):
+        """Update the related_artifacts arrays for both artifacts"""
+        conn = self.get_connection()
+
+        with conn.cursor() as cur:
+            # Update artifact1
+            cur.execute("""
+                INSERT INTO artifacts_extended (artifact_id, related_artifacts)
+                VALUES (%s, ARRAY[%s])
+                ON CONFLICT (artifact_id)
+                DO UPDATE SET
+                    related_artifacts = array_distinct(
+                        artifacts_extended.related_artifacts || ARRAY[%s::uuid]
+                    ),
+                    updated_at = NOW()
+            """, (artifact1_id, artifact2_id, artifact2_id))
+
+            # Update artifact2
+            cur.execute("""
+                INSERT INTO artifacts_extended (artifact_id, related_artifacts)
+                VALUES (%s, ARRAY[%s])
+                ON CONFLICT (artifact_id)
+                DO UPDATE SET
+                    related_artifacts = array_distinct(
+                        artifacts_extended.related_artifacts || ARRAY[%s::uuid]
+                    ),
+                    updated_at = NOW()
+            """, (artifact2_id, artifact1_id, artifact1_id))
+
+    def get_artifact_relationships(self, artifact_id, relationship_type=None):
+        """Get relationships for an artifact"""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            query = """
+                SELECT ar.*,
+                       sa.title as source_title,
+                       ta.title as target_title
+                FROM artifact_relationships ar
+                JOIN artifacts sa ON ar.source_artifact = sa.id
+                JOIN artifacts ta ON ar.target_artifact = ta.id
+                WHERE (ar.source_artifact = %s OR ar.target_artifact = %s)
+            """
+            params = [artifact_id, artifact_id]
+
+            if relationship_type:
+                query += " AND ar.relationship_type = %s"
+                params.append(relationship_type)
+
+            query += " ORDER BY ar.strength DESC"
+
+            cur.execute(query, params)
+            return cur.fetchall()
+
+    # --- User Goals ---
+    def create_goal(self, goal, description=None, priority=5, tags=None, related_topics=None):
+        """Create a new user goal"""
+        conn = self.get_connection()
+        goal_id = str(uuid.uuid4())
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO user_goals (id, goal, description, priority, tags, related_topics)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (goal_id, goal, description, priority, tags or [], related_topics or []))
+
+        return goal_id
+
+    def get_active_goals(self):
+        """Get all active user goals"""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT * FROM user_goals
+                WHERE active = true
+                ORDER BY priority DESC, created_at ASC
+            """)
+            return cur.fetchall()
+
+    def update_goal_progress(self, goal_id, progress):
+        """Update goal progress"""
+        conn = self.get_connection()
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE user_goals
+                SET progress = %s,
+                    updated_at = NOW(),
+                    completed_at = CASE WHEN %s >= 1.0 THEN NOW() ELSE completed_at END,
+                    active = CASE WHEN %s >= 1.0 THEN false ELSE active END
+                WHERE id = %s
+            """, (progress, progress, progress, goal_id))
+
+    # --- Consumption Queue ---
+    def add_to_consumption_queue(self, artifact_id, queue_type, score, reason=None, related_goal_id=None, expires_in_hours=24):
+        """Add an artifact to the consumption queue"""
+        conn = self.get_connection()
+        queue_id = str(uuid.uuid4())
+
+        expires_at = datetime.now() + timedelta(hours=expires_in_hours)
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO consumption_queue
+                (id, artifact_id, queue_type, score, reason, related_goal_id, expires_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (queue_id, artifact_id, queue_type, score, reason, related_goal_id, expires_at))
+
+        return queue_id
+
+    def get_consumption_queue(self, queue_type=None, limit=20):
+        """Get items from the consumption queue"""
+        conn = self.get_connection()
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            query = """
+                SELECT cq.*, a.title, a.content, a.metadata, a.created_at as artifact_created_at,
+                       ae.consumption_status, ae.importance_score
+                FROM consumption_queue cq
+                JOIN artifacts a ON cq.artifact_id = a.id
+                LEFT JOIN artifacts_extended ae ON a.id = ae.artifact_id
+                WHERE cq.expires_at > NOW() AND cq.consumed_at IS NULL
+            """
+            params = []
+
+            if queue_type:
+                query += " AND cq.queue_type = %s"
+                params.append(queue_type)
+
+            query += " ORDER BY cq.score DESC LIMIT %s"
+            params.append(limit)
+
+            cur.execute(query, params)
+            return cur.fetchall()
+
+    def mark_queue_item_consumed(self, queue_id):
+        """Mark a queue item as consumed"""
+        conn = self.get_connection()
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE consumption_queue
+                SET consumed_at = NOW()
+                WHERE id = %s
+            """, (queue_id,))
+
+    def cleanup_expired_queue(self):
+        """Remove expired items from the queue"""
+        conn = self.get_connection()
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                DELETE FROM consumption_queue
+                WHERE expires_at <= NOW() AND consumed_at IS NULL
+            """)
+
+    # --- Migration Helper ---
+    def run_migration(self, migration_file):
+        """Run a SQL migration file"""
+        conn = self.get_connection()
+
+        with open(migration_file, 'r') as f:
+            migration_sql = f.read()
+
+        with conn.cursor() as cur:
+            cur.execute(migration_sql)
+
+        logger.info(f"Migration {migration_file} completed successfully")

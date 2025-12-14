@@ -78,11 +78,22 @@ class IngestDaemon:
                 
                 artifact_id = self.db.insert_artifact(drop_id, title, content, metadata)
                 logger.info(f"Created Artifact: {artifact_id}")
-                
+
                 # Index in Brain
                 if self.brain:
                     self.brain.add_artifact(content, metadata, artifact_id)
-                
+
+                # Initialize extended metadata for consumption tracking
+                self.db.upsert_artifact_extended(
+                    artifact_id,
+                    consumption_score=0.0,
+                    importance_score=0.5,  # Default score, will be updated by curator
+                    consumption_status='unconsumed',
+                    view_count=0,
+                    engagement_score=0.0
+                )
+                logger.info(f"Initialized consumption tracking for {artifact_id}")
+
                 # Mark completed
                 self.db.update_drop_status(drop_id, 'completed')
             else:

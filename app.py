@@ -349,6 +349,188 @@ def api_resurface():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# --- New API Routes for Insights & Curation ---
+
+@app.route('/api/consumption/track', methods=['POST'])
+def api_track_consumption():
+    """Track a consumption event for an artifact"""
+    try:
+        from src.db.db import BrainDB as PostgresDB
+
+        data = request.get_json()
+        artifact_id = data.get('artifact_id')
+        event_type = data.get('event_type', 'view')
+
+        if not artifact_id:
+            return jsonify({'error': 'Missing artifact_id'}), 400
+
+        db = PostgresDB()
+
+        # Track the consumption event
+        event_id = db.track_consumption_event(
+            artifact_id=artifact_id,
+            event_type=event_type,
+            duration_seconds=data.get('duration_seconds'),
+            engagement_score=data.get('engagement_score'),
+            scroll_depth=data.get('scroll_depth'),
+            session_id=data.get('session_id'),
+            source=data.get('source', 'dashboard'),
+            metadata=data.get('metadata', {})
+        )
+
+        db.close()
+
+        return jsonify({
+            'success': True,
+            'event_id': event_id
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/consumption/queue', methods=['GET'])
+def api_consumption_queue():
+    """Get personalized consumption queue"""
+    try:
+        from src.db.db import BrainDB as PostgresDB
+        from src.brain.curator import Curator
+
+        queue_type = request.args.get('type', 'daily')
+        limit = int(request.args.get('limit', 10))
+
+        # Generate fresh queue
+        curator = Curator()
+        queue_items = curator.generate_consumption_queue(queue_type, limit)
+
+        # Also get existing queue items
+        db = PostgresDB()
+        db_queue = db.get_consumption_queue(queue_type, limit)
+        db.close()
+
+        return jsonify({
+            'queue': queue_items,
+            'existing_queue': db_queue,
+            'queue_type': queue_type
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/relationships/detect', methods=['POST'])
+def api_detect_relationships():
+    """Find and create relationships for an artifact"""
+    try:
+        from src.brain.curator import Curator
+
+        data = request.get_json()
+        artifact_id = data.get('artifact_id')
+
+        if not artifact_id:
+            return jsonify({'error': 'Missing artifact_id'}), 400
+
+        curator = Curator()
+        relationships_created = curator.update_artifact_relationships(artifact_id)
+
+        return jsonify({
+            'success': True,
+            'relationships_created': relationships_created
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/artifacts/<artifact_id>/extended', methods=['GET'])
+def api_artifact_extended(artifact_id):
+    """Get artifact with extended metadata and insights"""
+    try:
+        from src.db.db import BrainDB as PostgresDB
+
+        db = PostgresDB()
+
+        # Get artifact with extended metadata
+        artifact = db.get_artifact_extended(artifact_id)
+
+        if not artifact:
+            return jsonify({'error': 'Artifact not found'}), 404
+
+        # Get relationships
+        relationships = db.get_artifact_relationships(artifact_id)
+
+        # Get consumption events
+        consumption_events = db.get_consumption_events(artifact_id, limit=10)
+
+        db.close()
+
+        return jsonify({
+            'artifact': artifact,
+            'relationships': relationships,
+            'consumption_events': consumption_events
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/insights/basic', methods=['POST'])
+def api_basic_insights():
+    """Get basic insights for an artifact (creates them if needed)"""
+    try:
+        from src.brain.curator import Curator
+
+        data = request.get_json()
+        artifact_id = data.get('artifact_id')
+
+        if not artifact_id:
+            return jsonify({'error': 'Missing artifact_id'}), 400
+
+        curator = Curator()
+        insights = curator.analyze_artifact(artifact_id)
+
+        return jsonify({
+            'success': True,
+            'insights': insights
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/goals', methods=['GET', 'POST'])
+def api_goals():
+    """Manage user goals"""
+    try:
+        from src.db.db import BrainDB as PostgresDB
+
+        db = PostgresDB()
+
+        if request.method == 'GET':
+            goals = db.get_active_goals()
+            return jsonify({'goals': goals})
+
+        elif request.method == 'POST':
+            data = request.get_json()
+            goal_id = db.create_goal(
+                goal=data.get('goal'),
+                description=data.get('description'),
+                priority=data.get('priority', 5),
+                tags=data.get('tags', []),
+                related_topics=data.get('related_topics', [])
+            )
+            db.close()
+            return jsonify({'success': True, 'goal_id': goal_id})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/process-all', methods=['POST'])
+def api_process_all_artifacts():
+    """Process all unprocessed artifacts with insights"""
+    try:
+        from src.brain.curator import Curator
+
+        curator = Curator()
+        stats = curator.process_all_artifacts()
+
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     os.makedirs(INBOX_DIR, exist_ok=True)
     app.run(host='0.0.0.0', port=5002)
