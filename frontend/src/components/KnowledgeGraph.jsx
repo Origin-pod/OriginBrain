@@ -14,6 +14,7 @@ import {
   Download
 } from 'lucide-react';
 import * as d3 from 'd3';
+import axios from 'axios';
 
 const KnowledgeGraph = () => {
   const svgRef = useRef(null);

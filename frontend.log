@@ -3,86 +3,29 @@
 > vite
 
 You are using Node.js 22.0.0. Vite requires Node.js version 20.19+ or 22.12+. Please upgrade your Node.js version.
-2:13:00 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+3:30:19 PM [vite] (client) Re-optimizing dependencies because lockfile has changed
 
-  VITE v7.2.7  ready in 1376 ms
+  VITE v7.2.7  ready in 318 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
-2:13:01 PM [vite] http proxy error: /api/stats
-Error: connect ECONNREFUSED 127.0.0.1:5002
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
-2:13:01 PM [vite] http proxy error: /api/recent
-Error: connect ECONNREFUSED 127.0.0.1:5002
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
-2:13:01 PM [vite] http proxy error: /api/themes
-Error: connect ECONNREFUSED 127.0.0.1:5002
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
-2:13:01 PM [vite] http proxy error: /api/stats
-Error: connect ECONNREFUSED 127.0.0.1:5002
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
-2:13:01 PM [vite] http proxy error: /api/recent
-Error: connect ECONNREFUSED 127.0.0.1:5002
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
-2:13:01 PM [vite] http proxy error: /api/themes
-Error: connect ECONNREFUSED 127.0.0.1:5002
-    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1606:16)
-3:04:50 PM [vite] (client) hmr update /src/App.jsx, /src/index.css
-3:04:50 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
-  2  |  var _s = $RefreshSig$();
-  3  |  import React, { useEffect, useState } from "react";
-  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-     |                                                            ^
-  5  |  import { Button } from "@/components/ui/button";
-  6  |  import { Input } from "@/components/ui/input";
-      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
-      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
-      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
-      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
-      at async Promise.all (index 2)
-      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
-      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
-      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
-3:04:50 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
-  2  |  var _s = $RefreshSig$();
-  3  |  import React, { useEffect, useState } from "react";
-  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-     |                                                            ^
-  5  |  import { Button } from "@/components/ui/button";
-  6  |  import { Input } from "@/components/ui/input";
-3:04:50 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
-  2  |  var _s = $RefreshSig$();
-  3  |  import React, { useEffect, useState } from "react";
-  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-     |                                                            ^
-  5  |  import { Badge } from "@/components/ui/badge";
-  6  |  import { Button } from "@/components/ui/button";
-      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
-      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
-      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
-      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
-      at async Promise.all (index 2)
-      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
-      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
-      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
-3:04:50 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
-  Plugin: vite:import-analysis
-  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
-  2  |  var _s = $RefreshSig$();
-  3  |  import React, { useEffect, useState } from "react";
-  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-     |                                                            ^
-  5  |  import { Badge } from "@/components/ui/badge";
-  6  |  import { Button } from "@/components/ui/button";
-3:04:50 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
+(!) Failed to run dependency scan. Skipping dependency pre-bundling. Error: The following dependencies are imported but could not be resolved:
+
+  @/components/ui/card (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx)
+  @/components/ui/button (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx)
+  @/components/ui/input (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx)
+  @/components/ui/badge (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx)
+  @/components/ui/textarea (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx)
+  @/components/ui/progress (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx)
+  @/components/ui/select (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx)
+  @/components/ui/dialog (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx)
+  @/components/ui/label (imported by /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx)
+
+Are they installed?
+    at file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:31902:33
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:34110:15
+3:30:24 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
   Plugin: vite:import-analysis
   File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx:2:57
   2  |  var _s = $RefreshSig$();
@@ -100,7 +43,7 @@ Error: connect ECONNREFUSED 127.0.0.1:5002
       at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
       at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
       at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
-3:04:50 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
+3:30:24 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
   Plugin: vite:import-analysis
   File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx:2:57
   2  |  var _s = $RefreshSig$();
@@ -109,4 +52,200 @@ Error: connect ECONNREFUSED 127.0.0.1:5002
      |                                                            ^
   5  |  import { Button } from "@/components/ui/button";
   6  |  import { Badge } from "@/components/ui/badge";
-3:07:20 PM [vite] (client) hmr update /src/index.css
+3:30:24 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Input } from "@/components/ui/input";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+3:30:24 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Input } from "@/components/ui/input";
+3:30:24 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Badge } from "@/components/ui/badge";
+  6  |  import { Button } from "@/components/ui/button";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+3:30:24 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Badge } from "@/components/ui/badge";
+  6  |  import { Button } from "@/components/ui/button";
+3:30:24 PM [vite] (client) ✨ new dependencies optimized: react-dom/client, lucide-react, recharts, axios, d3
+3:30:24 PM [vite] (client) ✨ optimized dependencies changed. reloading
+3:30:25 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Badge } from "@/components/ui/badge";
+  6  |  import { Button } from "@/components/ui/button";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+3:30:25 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Badge } from "@/components/ui/badge";
+  6  |  import { Button } from "@/components/ui/button";
+3:30:25 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Input } from "@/components/ui/input";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+3:30:25 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Input } from "@/components/ui/input";
+3:30:25 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useRef, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Badge } from "@/components/ui/badge";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+3:30:25 PM [vite] (client) Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useRef, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Badge } from "@/components/ui/badge";
+3:30:25 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/ConsumptionDashboard.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/ConsumptionDashboard.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Badge } from "@/components/ui/badge";
+  6  |  import { Button } from "@/components/ui/button";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+      at async viteTransformMiddleware (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:24541:20)
+3:30:25 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/KnowledgeGraph.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/KnowledgeGraph.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useRef, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Badge } from "@/components/ui/badge";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+      at async viteTransformMiddleware (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:24541:20)
+3:30:25 PM [vite] Internal server error: Failed to resolve import "@/components/ui/card" from "src/components/GoalManager.jsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/src/components/GoalManager.jsx:2:57
+  2  |  var _s = $RefreshSig$();
+  3  |  import React, { useEffect, useState } from "react";
+  4  |  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+     |                                                            ^
+  5  |  import { Button } from "@/components/ui/button";
+  6  |  import { Input } from "@/components/ui/input";
+      at TransformPluginContext._formatLog (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28998:43)
+      at TransformPluginContext.error (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28995:14)
+      at normalizeUrl (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27118:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27176:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:27144:4)
+      at async EnvironmentPluginContainer.transform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:28796:14)
+      at async loadAndTransform (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:22669:26)
+      at async viteTransformMiddleware (file:///Users/sheetalssr/Documents/projects/2025/Origin/OriginBrain/frontend/node_modules/vite/dist/node/chunks/config.js:24541:20)
+3:31:58 PM [vite] vite.config.js changed, restarting server...
+3:31:58 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+3:31:58 PM [vite] server restarted.

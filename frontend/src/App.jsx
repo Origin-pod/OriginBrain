@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Navigation from './components/Navigation';
-import Dashboard from './components/Dashboard';
+import EnhancedNavigation from './components/EnhancedNavigation';
+import EnhancedDashboard from './components/EnhancedDashboard';
 import ConsumptionDashboard from './components/ConsumptionDashboard';
 import KnowledgeGraph from './components/KnowledgeGraph';
 import GoalManager from './components/GoalManager';
@@ -11,7 +11,7 @@ function App() {
   const renderView = () => {
     switch (activeView) {
       case 'dashboard':
-        return <Dashboard />;
+        return <EnhancedDashboard />;
       case 'consumption':
         return <ConsumptionDashboard />;
       case 'knowledge-graph':
@@ -19,13 +19,13 @@ function App() {
       case 'goals':
         return <GoalManager />;
       default:
-        return <Dashboard />;
+        return <EnhancedDashboard />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 font-sans selection:bg-blue-500/30">
-      <Navigation activeView={activeView} onViewChange={setActiveView} />
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-200 font-sans selection:bg-blue-500/30">
+      <EnhancedNavigation activeView={activeView} onViewChange={setActiveView} />
       <main className="container mx-auto px-6 py-8">
         {renderView()}
       </main>

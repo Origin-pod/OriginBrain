@@ -14,6 +14,14 @@ BRAIN_DB_DIR = os.path.abspath("brain_db")
 # Initialize BrainDB
 brain = BrainDB(BRAIN_DB_DIR)
 
+# Initialize Cache
+try:
+    from src.brain.cache_service import CacheService
+    cache = CacheService()
+except ImportError:
+    cache = None
+    print("Warning: Redis not available, caching disabled")
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
@@ -985,7 +993,234 @@ def api_optimize_search_index():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# --- Cache Management Endpoints ---
+
+@app.route('/api/cache/stats', methods=['GET'])
+def api_cache_stats():
+    """Get cache statistics"""
+    try:
+        from src.brain.cache_service import CacheService
+        cache = CacheService()
+        stats = cache.get_stats()
+
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/clear', methods=['POST'])
+def api_clear_cache():
+    """Clear all cache"""
+    try:
+        from src.brain.cache_service import CacheService
+        cache = CacheService()
+        success = cache.clear_all()
+
+        return jsonify({
+            'success': success,
+            'message': 'Cache cleared successfully' if success else 'Failed to clear cache'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/invalidate', methods=['POST'])
+def api_invalidate_cache():
+    """Invalidate cache entries matching pattern"""
+    try:
+        data = request.get_json()
+        pattern = data.get('pattern', '*')
+
+        from src.brain.cache_service import CacheService
+        cache = CacheService()
+        count = cache.invalidate_pattern(pattern)
+
+        return jsonify({
+            'success': True,
+            'invalidated': count,
+            'message': f'Invalidated {count} cache entries'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/cache/warm', methods=['POST'])
+def api_warm_cache():
+    """Warm cache with frequently accessed data"""
+    try:
+        data = request.get_json()
+        artifact_ids = data.get('artifact_ids', None)
+
+        from src.brain.cache_service import CacheService
+        cache = CacheService()
+        cache.warm_cache(artifact_ids)
+
+        return jsonify({
+            'success': True,
+            'message': 'Cache warming initiated'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# --- Job Scheduler Endpoints ---
+
+@app.route('/api/jobs/stats', methods=['GET'])
+def api_job_stats():
+    """Get job scheduler statistics"""
+    try:
+        from src.brain.job_scheduler import scheduler
+        stats = scheduler.get_statistics()
+
+        return jsonify({
+            'success': True,
+            'stats': stats
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jobs/<job_id>', methods=['GET'])
+def api_get_job(job_id):
+    """Get job status"""
+    try:
+        from src.brain.job_scheduler import scheduler
+        job = scheduler.get_job_status(job_id)
+
+        if job:
+            return jsonify({
+                'success': True,
+                'job': job
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Job not found'
+            }), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jobs/<job_id>/cancel', methods=['POST'])
+def api_cancel_job(job_id):
+    """Cancel a pending job"""
+    try:
+        from src.brain.job_scheduler import scheduler
+        success = scheduler.cancel_job(job_id)
+
+        return jsonify({
+            'success': success,
+            'message': 'Job cancelled' if success else 'Failed to cancel job or job not found'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/jobs/schedule', methods=['POST'])
+def api_schedule_job():
+    """Schedule a background job"""
+    try:
+        data = request.get_json()
+        job_type = data.get('type')
+        priority = data.get('priority', 5)
+
+        from src.brain.job_scheduler import scheduler
+
+        if job_type == 'analyze_artifact':
+            artifact_id = data.get('artifact_id')
+            if not artifact_id:
+                return jsonify({'error': 'artifact_id required'}), 400
+            job_id = scheduler.schedule_artifact_analysis(artifact_id, priority)
+
+        elif job_type == 'update_relationships':
+            artifact_id = data.get('artifact_id')
+            if not artifact_id:
+                return jsonify({'error': 'artifact_id required'}), 400
+            job_id = scheduler.schedule_relationship_update(artifact_id, priority)
+
+        elif job_type == 'export':
+            format_type = data.get('format', 'json')
+            filters = data.get('filters', {})
+            job_id = scheduler.schedule_export_job(format_type, filters, priority)
+
+        elif job_type == 'process_queue':
+            job_id = scheduler.add_job(
+                scheduler._process_consumption_queue,
+                priority=priority
+            )
+
+        elif job_type == 'update_recommendations':
+            job_id = scheduler.add_job(
+                scheduler._update_recommendations,
+                priority=priority
+            )
+
+        else:
+            return jsonify({'error': f'Unknown job type: {job_type}'}), 400
+
+        return jsonify({
+            'success': True,
+            'job_id': job_id,
+            'message': 'Job scheduled successfully'
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# --- Health Check with Cache Status ---
+@app.route('/api/health', methods=['GET'])
+def api_health_check():
+    """Comprehensive health check including cache and job scheduler"""
+    try:
+        from src.brain.cache_service import CacheService
+        from src.brain.job_scheduler import scheduler
+
+        # Check cache
+        cache = CacheService()
+        cache_stats = cache.get_stats()
+
+        # Check job scheduler
+        job_stats = scheduler.get_statistics()
+
+        # Check database
+        conn = brain.get_connection()
+        conn.execute('SELECT 1')
+        db_status = 'healthy'
+
+        return jsonify({
+            'success': True,
+            'status': 'healthy',
+            'components': {
+                'database': db_status,
+                'cache': cache_stats,
+                'job_scheduler': {
+                    'running': scheduler.running,
+                    'stats': job_stats
+                }
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
+    # Start job scheduler in background thread
+    import threading
+    import time
+    from src.brain.job_scheduler import scheduler
+
+    def start_scheduler():
+        time.sleep(2)  # Wait for app to start
+        try:
+            scheduler.start()
+            logger.info("Job scheduler started automatically")
+        except Exception as e:
+            logger.error(f"Failed to start job scheduler: {e}")
+
+    scheduler_thread = threading.Thread(target=start_scheduler, daemon=True)
+    scheduler_thread.start()
+
     os.makedirs(INBOX_DIR, exist_ok=True)
     app.run(host='0.0.0.0', port=5002)
 

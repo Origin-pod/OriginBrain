@@ -11,7 +11,8 @@ import {
   TrendingUp,
   Target,
   BarChart3,
-  Brain
+  Brain,
+  Database
 } from 'lucide-react';
 import axios from 'axios';
 
